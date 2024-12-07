@@ -42,7 +42,8 @@ fn part_2(filename: &str) -> usize {
     let (map, guard) = load(filename);
     // As for part one calculate list of visited positions. We only need to try
     // these for obstacle placement.
-    let mut visited_positions = HashSet::new();
+    let mut visited_positions =
+        HashSet::with_capacity((map.height * map.width).try_into().unwrap());
     let mut temp_guard = guard;
     while map.contains(&temp_guard.position) {
         visited_positions.insert(temp_guard.position);
@@ -67,7 +68,7 @@ fn check_looping_obstacle(guard: &Guard, map: &Map, obstacle_position: &Position
 }
 
 fn is_looping(guard: &mut Guard, map: &Map) -> bool {
-    let mut guard_history = HashSet::new();
+    let mut guard_history = HashSet::with_capacity((map.height * map.width).try_into().unwrap());
     while map.contains(&guard.position) {
         if !guard_history.insert(*guard) {
             return true;
