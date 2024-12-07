@@ -1,5 +1,9 @@
 use std::collections::HashSet;
 
+static mut CONTAINS_COUNTER: usize = 0;
+static mut TILE_AT_COUNTER: usize = 0;
+static mut STEP_COUNTER: usize = 0;
+
 fn main() {
     let input_file = "input";
 
@@ -8,6 +12,12 @@ fn main() {
 
     let p2_total = part_2(input_file);
     println!("Part 2 total: {p2_total}");
+
+    unsafe {
+        eprintln!(
+            "contains called {CONTAINS_COUNTER} times.\ntile_at called {TILE_AT_COUNTER} times.\nstep called {STEP_COUNTER} times."
+        );
+    }
 }
 
 /// Number of distinct positions visited by the guard.
@@ -38,13 +48,13 @@ fn part_2(filename: &str) -> usize {
         visited_positions.insert(temp_guard.position);
         temp_guard.step(&map);
     }
+    visited_positions.shrink_to_fit();
 
     let looping_obstacle_position_count = visited_positions
         .into_iter()
         .filter(|p| *p != guard.position)
         .filter(|p| map.tile_at(p) == Tile::Free)
         .filter(|p| check_looping_obstacle(&guard, &map, p))
-        .inspect(|p| eprintln!("Obstacle position: {:?}", p))
         .count();
     return looping_obstacle_position_count;
 }
@@ -102,6 +112,9 @@ impl Guard {
     /// If there is something directly in front of you, turn right 90 degrees.
     /// Otherwise, take a step forward.
     fn step(&mut self, map: &Map) {
+        unsafe {
+            STEP_COUNTER += 1;
+        }
         let mut tries = 0;
         self.position = loop {
             let new_position = match self.direction {
@@ -187,10 +200,16 @@ struct Map {
 
 impl Map {
     fn contains(&self, position: &Position) -> bool {
+        unsafe {
+            CONTAINS_COUNTER += 1;
+        }
         0 <= position.x && position.x < self.width && 0 <= position.y && position.y < self.height
     }
 
     fn tile_at(&self, position: &Position) -> Tile {
+        unsafe {
+            TILE_AT_COUNTER += 1;
+        }
         if !self.contains(position) {
             return Tile::OutOfBounds;
         }
